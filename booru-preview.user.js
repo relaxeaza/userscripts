@@ -12,9 +12,9 @@
 // ==/UserScript==
 
 const SETTINGS = {
-    HYDRUS_ENABLED = true,
-    HYDRUS_URL = 'http://127.0.0.1:45869',
-    HYDRUS_KEY = '146ab1723e31a2dca0348bc03576b8f7f0587d1201beb3e31a8ee0ebd85d0776'
+    HYDRUS_ENABLED: true,
+    HYDRUS_URL: 'http://127.0.0.1:45869',
+    HYDRUS_KEY: '146ab1723e31a2dca0348bc03576b8f7f0587d1201beb3e31a8ee0ebd85d0776'
 }
 
 let hydrus_permission = false
@@ -162,6 +162,7 @@ function create_styles () {
             'left: 0;',
             'top: 0;',
             'z-index: 100;',
+            'background: #FFFFFF40;',
         '}',
 
         '.rlx-preview-border {',
@@ -320,6 +321,67 @@ add_site('gelbooru.com', function () {
     ])
 
     document.querySelectorAll('.thumbnail-preview a').forEach(function ($post) {
+        $post.addEventListener('click', function (event) {
+            if (event.ctrlKey || event.shiftKey) {
+                return true
+            }
+
+            if ($post.querySelector('img').classList.contains('webm')) {
+                return true
+            }
+
+            event.preventDefault()
+
+            get_preview($post.href, function (size, src) {
+                open_preview(size, src, $post.href)
+            })
+
+            return false
+        })
+
+        if (hydrus_allowed()) {
+            hydrus_url_exists($post.href, function () {
+                const $checked = document.createElement('div')
+                $checked.className = 'rlx-hydrus-check'
+                $post.appendChild($checked)
+            })
+        }
+    })
+})
+
+add_site('safebooru.org', function () {
+    function get_preview (post_url, callback) {
+        if (post_url in cached_previews) {
+            const src_width = cached_previews[post_url].width
+            const src_height = cached_previews[post_url].height
+            const size = aspect_ratio_fit(src_width, src_height)
+
+            return callback(size, cached_previews[post_url].src)
+        }
+
+        ajax(post_url, function ($page) {
+            const $image = $page.querySelector('#image')
+            const src_width = $image.getAttribute('width')
+            const src_height = $image.getAttribute('height')
+            const size = aspect_ratio_fit(src_width, src_height)
+
+            cached_previews[post_url] = {
+                width: src_width,
+                height: src_height,
+                src: $image.src
+            }
+
+            callback(size, $image.src)
+        }, 'html')
+    }
+
+    add_styles([
+        '.rlx-hydrus-check {',
+            'line-height: 14px;',
+        '}'
+    ])
+
+    document.querySelectorAll('#post-list .thumb a').forEach(function ($post) {
         $post.addEventListener('click', function (event) {
             if (event.ctrlKey || event.shiftKey) {
                 return true

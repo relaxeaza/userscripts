@@ -8,16 +8,12 @@
 // @include     https://gelbooru.com//index.php?page=post&s=list*
 // @include     https://danbooru.donmai.us/
 // @include     https://danbooru.donmai.us/posts?*
-// @run-at      document-idle
+// @include     https://safebooru.org/index.php?page=post&s=list*
+// @run-at      document-start
 // ==/UserScript==
 
-const SETTINGS = {
-    HYDRUS_ENABLED: true,
-    HYDRUS_URL: 'http://127.0.0.1:45869',
-    HYDRUS_KEY: '146ab1723e31a2dca0348bc03576b8f7f0587d1201beb3e31a8ee0ebd85d0776'
-}
+const SETTINGS = {}
 
-let hydrus_permission = false
 let preview_open = false
 let $preview
 let $preview_frame
@@ -29,15 +25,6 @@ let current_preview_size = {}
 
 function init () {
     create_styles()
-
-    $preview = document.createElement('div')
-    $preview.className = 'rlx-preview'
-    $preview.style.display = 'none'
-    document.body.appendChild($preview)
-
-    $preview_frame = document.createElement('div')
-    $preview_frame.className = 'rlx-preview-border'
-    $preview.appendChild($preview_frame)
 
     document.addEventListener('keydown', function (event) {
         if (preview_open && event.key === 'Escape') {
@@ -54,15 +41,17 @@ function init () {
         }
     })
 
+    $preview = document.createElement('div')
+    $preview.className = 'rlx-preview'
+    $preview.style.display = 'none'
+    document.body.appendChild($preview)
+
+    $preview_frame = document.createElement('div')
+    $preview_frame.className = 'rlx-preview-border'
+    $preview.appendChild($preview_frame)
+
     if (location.host in site_preview_handler) {
-        if (SETTINGS.HYDRUS_ENABLED) {
-            hydrus_check_permission(function (permission) {
-                hydrus_permission = permission
-                site_preview_handler[location.host]()
-            })
-        } else {
-            site_preview_handler[location.host]()
-        }
+        site_preview_handler[location.host]()
     }
 }
 
@@ -146,10 +135,6 @@ function aspect_ratio_fit (src_width, src_height) {
     }
 }
 
-function add_styles (css) {
-    $style.innerHTML += css.join('')
-}
-
 function create_styles () {
     $style = document.createElement('style')
     document.head.appendChild($style)
@@ -170,23 +155,12 @@ function create_styles () {
             'border: 2px solid #0773fb;',
             'padding: 4px;',
             'margin: auto;',
-        '}',
-
-        '.rlx-hydrus-check {',
-            'width: 14px;',
-            'height: 14px;',
-            'position: absolute;',
-            'border-radius: 2px;',
-            'background-color: #77dd77;',
-            'box-shadow: 0 1px 1px #6bc76b, -2px 2px 1px #00000080;',
-            'text-align: center;',
-            'color: #000000;',
-        '}',
-
-        '.rlx-hydrus-check::after {',
-            'content: "✓"',
         '}'
     ])
+}
+
+function add_styles (css) {
+    $style.innerHTML += css.join('')
 }
 
 function ajax (url, callback, type) {
@@ -215,51 +189,7 @@ function ajax (url, callback, type) {
     req.send()
 }
 
-function hydrus_url_exists (url, exists_callback) {
-    let api_url = `${SETTINGS.HYDRUS_URL}/add_urls/get_url_files`
-    api_url += `?url=${encodeURIComponent(url)}`
-    api_url += `&Hydrus-Client-API-Access-Key=${SETTINGS.HYDRUS_KEY}`
-
-    ajax(api_url, function (result) {
-        result.url_file_statuses.some(function (file) {
-            if (file.status === 2) {
-                exists_callback()
-                return true
-            }
-        })
-    }, 'json')
-}
-
-function hydrus_check_permission (callback) {
-    let api_url = `${SETTINGS.HYDRUS_URL}/verify_access_key`
-    api_url += `?Hydrus-Client-API-Access-Key=${SETTINGS.HYDRUS_KEY}`
-
-    ajax(api_url, function (result) {
-        if (this.status !== 200) {
-            return callback(false)
-        }
-
-        const permission = result.basic_permissions.some(function (permission) {
-            return permission === 0
-        })
-
-        callback(permission)
-    }, 'json')
-}
-
-function hydrus_allowed () {
-    return SETTINGS.HYDRUS_ENABLED && hydrus_permission
-}
-
 add_site('danbooru.donmai.us', function () {
-    add_styles([
-        '.rlx-hydrus-check {',
-            'margin-left: 4px;',
-            'margin-top: -18px;',
-            'line-height: 17px;',
-        '}'
-    ])
-
     document.querySelectorAll('#posts-container article').forEach(function ($post) {
         const $archor = $post.querySelector('a')
 
@@ -275,14 +205,6 @@ add_site('danbooru.donmai.us', function () {
 
             return false
         })
-
-        if (hydrus_allowed()) {
-            hydrus_url_exists($archor.href, function () {
-                const $checked = document.createElement('div')
-                $checked.className = 'rlx-hydrus-check'
-                $archor.appendChild($checked)
-            })
-        }
     })
 })
 
@@ -312,14 +234,6 @@ add_site('gelbooru.com', function () {
         }, 'html')
     }
 
-    add_styles([
-        '.rlx-hydrus-check {',
-            'margin-left: -9px;',
-            'margin-top: -4px;',
-            'line-height: 14px;',
-        '}'
-    ])
-
     document.querySelectorAll('.thumbnail-preview a').forEach(function ($post) {
         $post.addEventListener('click', function (event) {
             if (event.ctrlKey || event.shiftKey) {
@@ -338,14 +252,6 @@ add_site('gelbooru.com', function () {
 
             return false
         })
-
-        if (hydrus_allowed()) {
-            hydrus_url_exists($post.href, function () {
-                const $checked = document.createElement('div')
-                $checked.className = 'rlx-hydrus-check'
-                $post.appendChild($checked)
-            })
-        }
     })
 })
 
@@ -375,12 +281,6 @@ add_site('safebooru.org', function () {
         }, 'html')
     }
 
-    add_styles([
-        '.rlx-hydrus-check {',
-            'line-height: 14px;',
-        '}'
-    ])
-
     document.querySelectorAll('#post-list .thumb a').forEach(function ($post) {
         $post.addEventListener('click', function (event) {
             if (event.ctrlKey || event.shiftKey) {
@@ -399,15 +299,7 @@ add_site('safebooru.org', function () {
 
             return false
         })
-
-        if (hydrus_allowed()) {
-            hydrus_url_exists($post.href, function () {
-                const $checked = document.createElement('div')
-                $checked.className = 'rlx-hydrus-check'
-                $post.appendChild($checked)
-            })
-        }
     })
 })
 
-init()
+document.addEventListener('DOMContentLoaded', init)

@@ -17,11 +17,13 @@ const SETTINGS = {}
 let preview_open = false
 let $preview
 let $preview_frame
-let $preview_img
+let $preview_media
 let $style
 let cached_previews = {}
 let site_preview_handler = {}
 let current_preview_size = {}
+let video_width
+let video_height
 
 function init () {
     create_styles()
@@ -34,10 +36,13 @@ function init () {
     })
 
     window.addEventListener('resize', function () {
+        video_width = Math.round(document.documentElement.clientWidth / 100 * 75)
+        video_height = Math.round(document.documentElement.clientHeight / 100 * 75)
+
         if (preview_open) {
             const size = aspect_ratio_fit(current_preview_size.width, current_preview_size.height)
-            $preview_img.style.width = size.width + 'px'
-            $preview_img.style.height = size.height + 'px'
+            $preview_media.style.width = size.width + 'px'
+            $preview_media.style.height = size.height + 'px'
         }
     })
 
@@ -49,6 +54,9 @@ function init () {
     $preview_frame = document.createElement('div')
     $preview_frame.className = 'rlx-preview-border'
     $preview.appendChild($preview_frame)
+
+    video_width = Math.round(document.documentElement.clientWidth / 100 * 75)
+    video_height = Math.round(document.documentElement.clientHeight / 100 * 75)
 
     if (location.host in site_preview_handler) {
         site_preview_handler[location.host]()
@@ -64,22 +72,40 @@ function add_site (host, data) {
     return true
 }
 
-function open_preview (size, src, image_url) {
+function open_preview (size, src, is_video, image_url) {
     if (preview_open) {
         return false
     }
 
     preview_open = true
 
-    $preview_img = document.createElement('img')
-    $preview_img.src = src
-    $preview_img.id = 'rlx-preview-element'
-    $preview_img.style.width = size.width + 'px'
-    $preview_img.style.height = size.height + 'px'
+    if (is_video) {
+        $preview_media = document.createElement('video')
+
+        src = Array.isArray(src) ? src : [src]
+        src.forEach(function (srcUrl) {
+            let $src = document.createElement('source')
+            $src.src = srcUrl
+            $preview_media.appendChild($src)
+        })
+
+        $preview_media.autoplay = true
+        $preview_media.controls = true
+        $preview_media.loop = true
+        $preview_media.setAttribute('width', size.width)
+        $preview_media.setAttribute('height', size.height)
+    } else {
+        $preview_media = document.createElement('img')
+        $preview_media.src = src
+        $preview_media.style.width = size.width + 'px'
+        $preview_media.style.height = size.height + 'px'
+    }
+
+    $preview_media.id = 'rlx-preview-element'
 
     let $a = document.createElement('a')
     $a.href = image_url
-    $a.appendChild($preview_img)
+    $a.appendChild($preview_media)
     $preview_frame.appendChild($a)
 
     $preview.style.display = 'flex'
@@ -130,8 +156,8 @@ function aspect_ratio_fit (src_width, src_height) {
     current_preview_size.height = src_height
     
     return {
-        width: Math.floor(src_width * ratio),
-        height: Math.floor(src_height * ratio)
+        width: parseInt(Math.floor(src_width * ratio), 10),
+        height: parseInt(Math.floor(src_height * ratio), 10)
     }
 }
 
@@ -200,8 +226,10 @@ add_site('danbooru.donmai.us', function () {
 
             event.preventDefault()
 
+            const is_video = /mp4|webm/.test($post.dataset.fileExt)
             const size = aspect_ratio_fit($post.dataset.width, $post.dataset.height)
-            open_preview(size, $post.dataset.largeFileUrl, $archor.href)
+
+            open_preview(size, $post.dataset.largeFileUrl, is_video, $archor.href)
 
             return false
         })
@@ -209,28 +237,49 @@ add_site('danbooru.donmai.us', function () {
 })
 
 add_site('gelbooru.com', function () {
-    function get_preview (post_url, callback) {
+    function get_preview (post_url, is_video, callback) {
         if (post_url in cached_previews) {
-            const src_width = cached_previews[post_url].width
-            const src_height = cached_previews[post_url].height
-            const size = aspect_ratio_fit(src_width, src_height)
+            const size = aspect_ratio_fit(
+                cached_previews[post_url].width,
+                cached_previews[post_url].height
+            )
 
             return callback(size, cached_previews[post_url].src)
         }
 
         ajax(post_url, function ($page) {
-            const $image = $page.querySelector('#image')
-            const src_width = $image.dataset.originalWidth
-            const src_height = $image.dataset.originalHeight
-            const size = aspect_ratio_fit(src_width, src_height)
+            cached_previews[post_url] = {}
 
-            cached_previews[post_url] = {
-                width: src_width,
-                height: src_height,
-                src: $image.src
+            let $media
+
+            if (is_video) {
+                $media = $page.querySelector('#gelcomVideoPlayer')
+
+                let $size = $page.querySelectorAll('#tag-list div li:not([class])')[2]
+                let size = $size.innerText.split(' ')[1].split('x')
+
+                cached_previews[post_url].width = parseInt(size[0], 10)
+                cached_previews[post_url].height = parseInt(size[1], 10)
+                cached_previews[post_url].is_video = true
+                cached_previews[post_url].src = []
+
+                $media.querySelectorAll('source').forEach(function (source) {
+                    cached_previews[post_url].src.push(source.src)
+                })
+            } else {
+                $media = $page.querySelector('#image')
+
+                cached_previews[post_url].width = parseInt($media.dataset.originalWidth, 10)
+                cached_previews[post_url].height = parseInt($media.dataset.originalHeight, 10)
+                cached_previews[post_url].src = $media.src
             }
 
-            callback(size, $image.src)
+            const size = aspect_ratio_fit(
+                cached_previews[post_url].width, 
+                cached_previews[post_url].height
+            )
+
+            callback(size, cached_previews[post_url].src)
         }, 'html')
     }
 
@@ -240,14 +289,12 @@ add_site('gelbooru.com', function () {
                 return true
             }
 
-            if ($post.querySelector('img').classList.contains('webm')) {
-                return true
-            }
-
             event.preventDefault()
+            
+            const is_video = $post.querySelector('img').classList.contains('webm')
 
-            get_preview($post.href, function (size, src) {
-                open_preview(size, src, $post.href)
+            get_preview($post.href, is_video, function (size, src) {
+                open_preview(size, src, is_video, $post.href)
             })
 
             return false
@@ -294,7 +341,7 @@ add_site('safebooru.org', function () {
             event.preventDefault()
 
             get_preview($post.href, function (size, src) {
-                open_preview(size, src, $post.href)
+                open_preview(size, src, false, $post.href)
             })
 
             return false

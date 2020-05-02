@@ -10,6 +10,7 @@
 // @include     https://gelbooru.com//index.php?page=post&s=list*
 // @include     https://danbooru.donmai.us/
 // @include     https://danbooru.donmai.us/posts?*
+// @downloadURL https://gitlab.com/relaxeaza/userscripts/raw/master/booru-scroll-jump-page.user.js
 // ==/UserScript==
 
 const steps_to_jump = 10

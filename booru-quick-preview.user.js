@@ -11,6 +11,7 @@
 // @include     https://danbooru.donmai.us/
 // @include     https://danbooru.donmai.us/posts?*
 // @include     https://safebooru.org/index.php?page=post&s=list*
+// @downloadURL https://gitlab.com/relaxeaza/userscripts/raw/master/booru-quick-preview.user.js
 // ==/UserScript==
 
 let preview_open = false

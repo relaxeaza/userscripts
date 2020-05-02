@@ -8,6 +8,7 @@
 // @icon        https://i.imgur.com/7bSVRPU.jpg
 // @include     https://saucenao.com/*
 // @include     https://iqdb.org/*
+// @downloadURL https://gitlab.com/relaxeaza/userscripts/raw/master/sauce-easy-drop.user.js
 // ==/UserScript==
 
 const sites = {

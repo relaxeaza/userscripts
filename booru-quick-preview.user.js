@@ -1,18 +1,17 @@
 // ==UserScript==
-// @name        Booru Preview
-// @namespace   Booru Preview
-// @grant       none
-// @author      Relaxeaza
+// @name        Booru Quick Preview
+// @description Preview media without opening the post page.
+// @namespace   relaxeaza/userscripts
 // @version     1.0.0
+// @grant       none
+// @run-at      document-start
+// @icon        https://i.imgur.com/pi2aL2k.jpg
 // @include     https://gelbooru.com/index.php?page=post&s=list*
 // @include     https://gelbooru.com//index.php?page=post&s=list*
 // @include     https://danbooru.donmai.us/
 // @include     https://danbooru.donmai.us/posts?*
 // @include     https://safebooru.org/index.php?page=post&s=list*
-// @run-at      document-start
 // ==/UserScript==
-
-const SETTINGS = {}
 
 let preview_open = false
 let $preview

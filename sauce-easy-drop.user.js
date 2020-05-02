@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name        Sauce Easy Drop
-// @namespace   Sauce Easy Drop
-// @match       https://saucenao.com/*
-// @match       https://iqdb.org/*
-// @grant       none
-// @version     1.0.0
-// @author      Relaxeaza
 // @description SauceNAO/IQDB - Drop files in any place of the window to get sauce.
+// @namespace   relaxeaza/userscripts
+// @version     1.0.0
+// @grant       none
+// @run-at      document-start
+// @icon        https://i.imgur.com/7bSVRPU.jpg
+// @include     https://saucenao.com/*
+// @include     https://iqdb.org/*
 // ==/UserScript==
 
 const sites = {

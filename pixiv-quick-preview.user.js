@@ -7,8 +7,7 @@
 // @run-at      document-start
 // @icon        https://i.imgur.com/pi2aL2k.jpg
 // @include     https://www.pixiv.net/stacc*
-// @include     https://www.pixiv.net/en/
-// @include     https://www.pixiv.net/en/users/*
+// @include     https://www.pixiv.net/en/*
 // @downloadURL https://gitlab.com/relaxeaza/userscripts/raw/master/pixiv-quick-preview.user.js
 // @noframes
 // ==/UserScript==
@@ -23,6 +22,7 @@ const rhome = /^\/en\/$/
 const ruserhome = /^\/en\/users\/\d+(\/.*)?$/
 const rstacc = /^\/stacc$/
 const ruserstacc = /^\/stacc\/.+$/
+const rartwork = /^\/en\/artworks\/\d+$/
 
 function init () {
     $overlay = document.createElement('div')
@@ -99,6 +99,12 @@ const setupPage = function () {
                 posts: '#stacc_center_timeline a.work:not(.rlx-listener)',
                 waitfor: '#stacc_center_timeline .work',
                 observe: '#stacc_center_timeline'
+            }
+        } else if (rartwork.test(pathname)) {
+            return {
+                posts: 'main nav:first-child > div > div:not(.rlx-listener)',
+                waitfor: 'main nav:first-child > div > div',
+                observe: 'main nav:first-child > div'
             }
         }
 

@@ -89,27 +89,32 @@ const onSelectorReady = function (selector, callback) {
 
 const setupPage = function () {
     const sectionsSelectors = (function (pathname) {
+        // https://www.pixiv.net/en/
         if (rhome.test(pathname)) {
             return [{
                 posts: '.gtm-illust-recommend-zone .image-item:not(.rlx-listener), .everyone-new-illusts .image-item:not(.rlx-listener)'
             }]
+        // https://www.pixiv.net/en/users/$ARTIST_ID
         } else if (ruserhome.test(pathname)) {
             return [{
                 posts: '._1Ed7xkM:not(.rlx-listener)',
                 waitfor: 'ul._2WwRD0o._2WyzEUZ ._1Ed7xkM'
             }]
+        // https://www.pixiv.net/stacc
         } else if (rstacc.test(pathname)) {
             return [{
                 posts: '#stacc_timeline a.work:not(.rlx-listener)',
                 waitfor: '#stacc_timeline .work',
                 observe: '#stacc_timeline'
             }]
+        // https://www.pixiv.net/stacc/$ARTIST_ID
         } else if (ruserstacc.test(pathname)) {
             return [{
                 posts: '#stacc_center_timeline a.work:not(.rlx-listener)',
                 waitfor: '#stacc_center_timeline .work',
                 observe: '#stacc_center_timeline'
             }]
+        // https://www.pixiv.net/en/artworks/$ILLUST_ID
         } else if (rartwork.test(pathname)) {
             return [{
                 posts: 'main nav:first-child > div > div:not(.rlx-listener)',

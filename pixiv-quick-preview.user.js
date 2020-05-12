@@ -72,6 +72,7 @@ function init () {
             })
 
             observers = []
+            hidePreview()
             setupPage()
         }
     }, 1000)
@@ -181,17 +182,23 @@ const setupSectionListeners = function (sectionSelector) {
 
         $post.addEventListener('mouseenter', function (event) {
             timerId = setTimeout(function () {
-                $media.src = getSource($post.querySelector('img').src)
-                $overlay.style.display = 'flex'
+                showPreview($post.querySelector('img').src)
             }, 300)
         })
 
-        $post.addEventListener('mouseleave', function (event) {
-            clearTimeout(timerId)
-            $overlay.style.display = 'none'
-            $media.src = ''
-        })
+        $post.addEventListener('mouseleave', hidePreview)
     })
+}
+
+const showPreview = function (src) {
+    $media.src = getSource(src)
+    $overlay.style.display = 'flex'
+}
+
+const hidePreview = function () {
+    clearTimeout(timerId)
+    $overlay.style.display = 'none'
+    $media.src = ''
 }
 
 document.addEventListener('DOMContentLoaded', init)

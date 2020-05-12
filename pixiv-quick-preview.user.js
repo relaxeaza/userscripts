@@ -17,14 +17,73 @@ let $overlay
 let $loading
 let $media
 let observers = []
+const rextracturl = /(?:img-master|custom-thumb)\/img(\/\d{4}\/(?:\d{2}\/){5})(\d+)_p0/
 
-const rpost = /(?:img-master|custom-thumb)\/img(\/\d{4}\/(?:\d{2}\/){5})(\d+)_p0/
-const rhome = /^\/en\/$/
-const ruserhome = /^\/en\/users\/\d+$/
-const ruserillusts = /^\/en\/users\/\d+\/(illustrations|artworks)$/
-const rstacc = /^\/stacc$/
-const ruserstacc = /^\/stacc\/.+$/
-const rartwork = /^\/en\/artworks\/\d+$/
+const pagesData = [
+    // https://www.pixiv.net/en/
+    ['home', {
+        match: /^\/en\/$/,
+        selectors: [{
+            posts: '.gtm-illust-recommend-zone .image-item:not(.rlx-listener), .everyone-new-illusts .image-item:not(.rlx-listener)'
+        }]
+    }],
+
+    // https://www.pixiv.net/en/users/$ARTIST_ID
+    ['profile', {
+        match: /^\/en\/users\/\d+$/,
+        selectors: [{
+            posts: 'section:first-child ul > li:not(.rlx-listener)',
+            waitfor: 'section:first-child ul > li'
+        }, {
+            posts: '._1Ed7xkM:not(.rlx-listener)',
+            waitfor: 'ul._2WwRD0o._2WyzEUZ ._1Ed7xkM'
+        }]
+    }],
+
+    // https://www.pixiv.net/en/users/$ARTIST_ID/illustrations OR /artworks
+    ['user_illustrations', {
+        match: /^\/en\/users\/\d+\/(illustrations|artworks)$/,
+        selectors: [{
+            posts: 'section ul > li:not(.rlx-listener)',
+            waitfor: 'section ul > li',
+            observe: 'section ul'
+        }]
+    }],
+
+    // https://www.pixiv.net/stacc
+    ['stacc', {
+        match: /^\/stacc$/,
+        selectors: [{
+            posts: '#stacc_timeline a.work:not(.rlx-listener)',
+            waitfor: '#stacc_timeline .work',
+            observe: '#stacc_timeline'
+        }]
+    }],
+
+    // https://www.pixiv.net/stacc/$ARTIST_ID
+    ['user_stacc', {
+        match: /^\/stacc\/.+$/,
+        selectors: [{
+            posts: '#stacc_center_timeline a.work:not(.rlx-listener)',
+            waitfor: '#stacc_center_timeline .work',
+            observe: '#stacc_center_timeline'
+        }]
+    }],
+
+    // https://www.pixiv.net/en/artworks/$ILLUST_ID
+    ['illustration', {
+        match: /^\/en\/artworks\/\d+$/,
+        selectors: [{
+            posts: 'main nav:first-child > div > div:not(.rlx-listener)',
+            waitfor: 'main nav:first-child > div > div',
+            observe: 'main nav:first-child > div'
+        }, {
+            posts: 'ul.gtm-illust-recommend-zone > li:not(.rlx-listener)',
+            waitfor: 'ul.gtm-illust-recommend-zone > li',
+            observe: 'ul.gtm-illust-recommend-zone'
+        }]
+    }]
+]
 
 function init () {
     $overlay = document.createElement('div')
@@ -78,8 +137,20 @@ function init () {
     }, 1000)
 }
 
+const setupPage = function () {
+    for ([page, data] of pagesData) {
+        if (data.match.test(location.pathname)) {
+            data.selectors.forEach(function (sectionSelector) {
+                setupSection(sectionSelector)
+            })
+
+            break
+        }
+    }
+}
+
 const getSource = function (squareURL) {
-    const match = squareURL.match(rpost)
+    const match = squareURL.match(rextracturl)
 
     if (match && match[1]) {
         return `https://i.pximg.net/img-master/img${match[1]}${match[2]}_p0_master1200.jpg`
@@ -94,68 +165,6 @@ const onSelectorReady = function (selector, callback) {
             onSelectorReady(selector, callback)
         }, 500)
     }
-}
-
-const setupPage = function () {
-    const sectionsSelectors = (function (pathname) {
-        // https://www.pixiv.net/en/
-        if (rhome.test(pathname)) {
-            return [{
-                posts: '.gtm-illust-recommend-zone .image-item:not(.rlx-listener), .everyone-new-illusts .image-item:not(.rlx-listener)'
-            }]
-        // https://www.pixiv.net/en/users/$ARTIST_ID
-        } else if (ruserhome.test(pathname)) {
-            return [{
-                posts: 'section:first-child ul > li:not(.rlx-listener)',
-                waitfor: 'section:first-child ul > li'
-            }, {
-                posts: '._1Ed7xkM:not(.rlx-listener)',
-                waitfor: 'ul._2WwRD0o._2WyzEUZ ._1Ed7xkM'
-            }]
-        // https://www.pixiv.net/en/users/$ARTIST_ID/illustrations OR /artworks
-        } else if (ruserillusts.test(pathname)) {
-            return [{
-                posts: 'section ul > li:not(.rlx-listener)',
-                waitfor: 'section ul > li',
-                observe: 'section ul'
-            }]
-        // https://www.pixiv.net/stacc
-        } else if (rstacc.test(pathname)) {
-            return [{
-                posts: '#stacc_timeline a.work:not(.rlx-listener)',
-                waitfor: '#stacc_timeline .work',
-                observe: '#stacc_timeline'
-            }]
-        // https://www.pixiv.net/stacc/$ARTIST_ID
-        } else if (ruserstacc.test(pathname)) {
-            return [{
-                posts: '#stacc_center_timeline a.work:not(.rlx-listener)',
-                waitfor: '#stacc_center_timeline .work',
-                observe: '#stacc_center_timeline'
-            }]
-        // https://www.pixiv.net/en/artworks/$ILLUST_ID
-        } else if (rartwork.test(pathname)) {
-            return [{
-                posts: 'main nav:first-child > div > div:not(.rlx-listener)',
-                waitfor: 'main nav:first-child > div > div',
-                observe: 'main nav:first-child > div'
-            }, {
-                posts: 'ul.gtm-illust-recommend-zone > li:not(.rlx-listener)',
-                waitfor: 'ul.gtm-illust-recommend-zone > li',
-                observe: 'ul.gtm-illust-recommend-zone'
-            }]
-        }
-
-        return false
-    })(location.pathname)
-
-    if (!sectionsSelectors) {
-        return
-    }
-
-    sectionsSelectors.forEach(function (sectionSelector) {
-        setupSection(sectionSelector)
-    })
 }
 
 const setupSection = function (sectionSelector) {

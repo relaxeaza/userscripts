@@ -67,7 +67,7 @@ function init () {
             previousState = window.history.state
 
             observers.forEach(function (observer) {
-                observer.disconnect()
+                observer && observer.disconnect()
             })
 
             observers = []

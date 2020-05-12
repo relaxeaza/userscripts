@@ -78,44 +78,50 @@ const getSource = function (squareURL) {
 }
 
 const setupPage = function () {
-    const selector = (function (pathname) {
+    const pageSelectors = (function (pathname) {
         if (rhome.test(pathname)) {
-            return {
+            return [{
                 posts: '.gtm-illust-recommend-zone .image-item:not(.rlx-listener), .everyone-new-illusts .image-item:not(.rlx-listener)'
-            }
+            }]
         } else if (ruserhome.test(pathname)) {
-            return {
+            return [{
                 posts: '._1Ed7xkM:not(.rlx-listener)',
                 waitfor: 'ul._2WwRD0o._2WyzEUZ ._1Ed7xkM'
-            }
+            }]
         } else if (rstacc.test(pathname)) {
-            return {
+            return [{
                 posts: '#stacc_timeline a.work:not(.rlx-listener)',
                 waitfor: '#stacc_timeline .work',
                 observe: '#stacc_timeline'
-            }
+            }]
         } else if (ruserstacc.test(pathname)) {
-            return {
+            return [{
                 posts: '#stacc_center_timeline a.work:not(.rlx-listener)',
                 waitfor: '#stacc_center_timeline .work',
                 observe: '#stacc_center_timeline'
-            }
+            }]
         } else if (rartwork.test(pathname)) {
-            return {
+            return [{
                 posts: 'main nav:first-child > div > div:not(.rlx-listener)',
                 waitfor: 'main nav:first-child > div > div',
                 observe: 'main nav:first-child > div'
-            }
+            }, {
+                posts: 'ul.gtm-illust-recommend-zone > li:not(.rlx-listener)',
+                waitfor: 'ul.gtm-illust-recommend-zone > li',
+                observe: 'ul.gtm-illust-recommend-zone'
+            }]
         }
 
         return false
     })(location.pathname)
 
-    if (!selector) {
+    if (!pageSelectors) {
         return
     }
 
-    setupListeners(selector)
+    pageSelectors.forEach(function (selector) {
+        setupListeners(selector)
+    })
 }
 
 const setupListeners = function (selector) {

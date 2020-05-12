@@ -16,6 +16,7 @@ let timerId
 let $overlay
 let $loading
 let $media
+let observers = []
 
 const rpost = /(?:img-master|custom-thumb)\/img(\/\d{4}\/(?:\d{2}\/){5})(\d+)_p0/
 const rhome = /^\/en\/$/
@@ -64,6 +65,12 @@ function init () {
     setInterval(function() {
         if (previousState !== window.history.state) {
             previousState = window.history.state
+
+            observers.forEach(function (observer) {
+                observer.disconnect()
+            })
+
+            observers = []
             setupPage()
         }
     }, 1000)
@@ -94,7 +101,7 @@ const setupPage = function () {
             return [{
                 posts: '.gtm-illust-recommend-zone .image-item:not(.rlx-listener), .everyone-new-illusts .image-item:not(.rlx-listener)'
             }]
-        // https://www.pixiv.net/en/users/$ARTIST_ID
+        // https://www.pixiv.net/en/users/$ARTIST_ID*
         } else if (ruserhome.test(pathname)) {
             return [{
                 posts: '._1Ed7xkM:not(.rlx-listener)',
@@ -142,11 +149,13 @@ const setupPage = function () {
 const setupSection = function (sectionSelector) {
     onSelectorReady(sectionSelector.waitfor, function () {
         if (sectionSelector.observe) {
-            new MutationObserver(function () {
+            const observer = new MutationObserver(function () {
                 setupSectionListeners(sectionSelector)
             }).observe(document.querySelector(sectionSelector.observe), {
                 childList: true
             })
+
+            observers.push(observer)
         }
 
         setupSectionListeners(sectionSelector)

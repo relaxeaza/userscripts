@@ -20,7 +20,8 @@ let observers = []
 
 const rpost = /(?:img-master|custom-thumb)\/img(\/\d{4}\/(?:\d{2}\/){5})(\d+)_p0/
 const rhome = /^\/en\/$/
-const ruserhome = /^\/en\/users\/\d+(\/.*)?$/
+const ruserhome = /^\/en\/users\/\d+$/
+const ruserillusts = /^\/en\/users\/\d+\/(illustrations|artworks)$/
 const rstacc = /^\/stacc$/
 const ruserstacc = /^\/stacc\/.+$/
 const rartwork = /^\/en\/artworks\/\d+$/
@@ -101,11 +102,21 @@ const setupPage = function () {
             return [{
                 posts: '.gtm-illust-recommend-zone .image-item:not(.rlx-listener), .everyone-new-illusts .image-item:not(.rlx-listener)'
             }]
-        // https://www.pixiv.net/en/users/$ARTIST_ID*
+        // https://www.pixiv.net/en/users/$ARTIST_ID
         } else if (ruserhome.test(pathname)) {
             return [{
+                posts: 'section:first-child ul > li:not(.rlx-listener)',
+                waitfor: 'section:first-child ul > li'
+            }, {
                 posts: '._1Ed7xkM:not(.rlx-listener)',
                 waitfor: 'ul._2WwRD0o._2WyzEUZ ._1Ed7xkM'
+            }]
+        // https://www.pixiv.net/en/users/$ARTIST_ID/illustrations OR /artworks
+        } else if (ruserillusts.test(pathname)) {
+            return [{
+                posts: 'section ul > li:not(.rlx-listener)',
+                waitfor: 'section ul > li',
+                observe: 'section ul'
             }]
         // https://www.pixiv.net/stacc
         } else if (rstacc.test(pathname)) {

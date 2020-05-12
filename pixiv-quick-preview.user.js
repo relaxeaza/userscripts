@@ -109,15 +109,7 @@ const setupPage = function () {
         return
     }
 
-    if (selector.observe) {
-        new MutationObserver(function () {
-            setupListeners(selector)
-        }).observe(document.querySelector(selector.observe), {
-            childList: true
-        })
-    } else {
-        setupListeners(selector)
-    }
+    setupListeners(selector)
 }
 
 const setupListeners = function (selector) {
@@ -125,6 +117,14 @@ const setupListeners = function (selector) {
         return setTimeout(function () {
             setupListeners(selector)
         }, 500)
+    }
+
+    if (selector.observe) {
+        new MutationObserver(function () {
+            setupListeners(selector)
+        }).observe(document.querySelector(selector.observe), {
+            childList: true
+        })
     }
 
     const $posts = document.querySelectorAll(selector.posts)

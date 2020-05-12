@@ -77,8 +77,18 @@ const getSource = function (squareURL) {
     }
 }
 
+const onSelectorReady = function (selector, callback) {
+    if (!selector || document.querySelector(selector)) {
+        callback()
+    } else {
+        setTimeout(function () {
+            onSelectorReady(selector, callback)
+        }, 500)
+    }
+}
+
 const setupPage = function () {
-    const pageSelectors = (function (pathname) {
+    const sectionsSelectors = (function (pathname) {
         if (rhome.test(pathname)) {
             return [{
                 posts: '.gtm-illust-recommend-zone .image-item:not(.rlx-listener), .everyone-new-illusts .image-item:not(.rlx-listener)'
@@ -115,33 +125,31 @@ const setupPage = function () {
         return false
     })(location.pathname)
 
-    if (!pageSelectors) {
+    if (!sectionsSelectors) {
         return
     }
 
-    pageSelectors.forEach(function (selector) {
-        setupListeners(selector)
+    sectionsSelectors.forEach(function (sectionSelector) {
+        setupSection(sectionSelector)
     })
 }
 
-const setupListeners = function (selector) {
-    if (selector.waitfor && !document.querySelectorAll(selector.waitfor).length) {
-        return setTimeout(function () {
-            setupListeners(selector)
-        }, 500)
-    }
+const setupSection = function (sectionSelector) {
+    onSelectorReady(sectionSelector.waitfor, function () {
+        if (sectionSelector.observe) {
+            new MutationObserver(function () {
+                setupSectionListeners(sectionSelector)
+            }).observe(document.querySelector(sectionSelector.observe), {
+                childList: true
+            })
+        }
 
-    if (selector.observe) {
-        new MutationObserver(function () {
-            setupListeners(selector)
-        }).observe(document.querySelector(selector.observe), {
-            childList: true
-        })
-    }
+        setupSectionListeners(sectionSelector)
+    })
+}
 
-    const $posts = document.querySelectorAll(selector.posts)
-
-    console.log('setting up listener for ' + $posts.length + ' elements')
+const setupSectionListeners = function (sectionSelector) {
+    const $posts = document.querySelectorAll(sectionSelector.posts)
 
     $posts.forEach(function ($post) {
         $post.classList.add('rlx-listener')

@@ -101,23 +101,23 @@ const setupPage = function () {
                 observe: '#stacc_center_timeline'
             }
         }
+
+        return false
     })(location.pathname)
 
-    if (selector.hasOwnProperty('observe')) {
-        const observer = new MutationObserver(function (mutationsList, observer) {
-            for(let mutation of mutationsList) {
-                if (mutation.type === 'childList') {
-                    setupListeners(selector)
-                }
-            }
-        })
-
-        observer.observe(document.querySelector(selector.observe), {
-            childList: true
-        })
+    if (!selector) {
+        return
     }
 
-    setupListeners(selector)
+    if (selector.observe) {
+        new MutationObserver(function () {
+            setupListeners(selector)
+        }).observe(document.querySelector(selector.observe), {
+            childList: true
+        })
+    } else {
+        setupListeners(selector)
+    }
 }
 
 const setupListeners = function (selector) {

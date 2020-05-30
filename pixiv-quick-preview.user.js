@@ -2,7 +2,7 @@
 // @name        Pixiv Quick Preview
 // @description Preview media without opening the post page.
 // @namespace   relaxeaza/userscripts
-// @version     1.0.0
+// @version     1.0.1
 // @grant       none
 // @run-at      document-start
 // @icon        https://i.imgur.com/pi2aL2k.jpg
@@ -102,6 +102,7 @@ function init () {
     $overlay.style['font-size'] = 'x-large'
     $overlay.style['color'] = 'white'
     $overlay.style['pointer-events'] = 'none'
+    $overlay.style['z-index'] = '10'
 
     $loading.innerText = 'loading...'
     $loading.style['position'] = 'absolute'

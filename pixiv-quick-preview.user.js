@@ -2,7 +2,7 @@
 // @name        Pixiv Quick Preview
 // @description Preview media without opening the post page.
 // @namespace   relaxeaza/userscripts
-// @version     1.0.1
+// @version     1.0.2
 // @grant       none
 // @run-at      document-start
 // @icon        https://i.imgur.com/pi2aL2k.jpg
@@ -18,6 +18,7 @@ let $loading
 let $media
 let observers = []
 const rextracturl = /(?:img-master|custom-thumb)\/img(\/\d{4}\/(?:\d{2}\/){5})(\d+)_p0/
+const IS_VIDEO = 'is_video'
 
 const pagesData = [
     // https://www.pixiv.net/en/
@@ -192,7 +193,13 @@ const setupSectionListeners = function (sectionSelector) {
 
         $post.addEventListener('mouseenter', function (event) {
             timerId = setTimeout(function () {
-                showPreview($post.querySelector('img').src)
+                const previewSrc = $post.querySelector('img').src
+
+                if ($post.querySelector('svg circle')) {
+                    showPreview(previewSrc, IS_VIDEO)
+                } else {
+                    showPreview(previewSrc)
+                }
             }, 300)
         })
 
@@ -200,8 +207,8 @@ const setupSectionListeners = function (sectionSelector) {
     })
 }
 
-const showPreview = function (src) {
-    $media.src = getSource(src)
+const showPreview = function (src, type) {
+    $media.src = type === IS_VIDEO ? src : getSource(src)
     $overlay.style.display = 'flex'
 }
 

@@ -2,7 +2,7 @@
 // @name        Booru Scroll Jump Page
 // @description Next/prev pame after scrolling against bottom/top of the page.
 // @namespace   relaxeaza/userscripts
-// @version     1.0.0
+// @version     1.1.0
 // @grant       none
 // @run-at      document-start
 // @icon        https://i.imgur.com/pi2aL2k.jpg
@@ -13,7 +13,10 @@
 // @downloadURL https://gitlab.com/relaxeaza/userscripts/raw/master/booru-scroll-jump-page.user.js
 // ==/UserScript==
 
-const steps_to_jump = 10
+const steps_to_jump = 8
+
+const $indicator = document.createElement('div')
+const $indicatorWrapper = document.createElement('div')
 
 function on_top () {
     return !window.scrollY
@@ -50,6 +53,19 @@ function get_pagination_elements () {
     return loader[location.host]()
 }
 
+function show_indicator () {
+    $indicatorWrapper.style['visibility'] = 'visible'
+}
+
+function hide_indicator () {
+    $indicatorWrapper.style['visibility'] = 'hidden'
+    $indicator.style['width'] = '0%'
+}
+
+function set_indicator_size (steps) {
+    $indicator.style['width'] = Math.round((steps + 1) / steps_to_jump * 100) + '%'
+}
+
 function init () {
     let top = on_top()
     let bottom = on_bottom()
@@ -57,6 +73,20 @@ function init () {
     let jumping = false
 
     const $paginator = get_pagination_elements()
+
+    $indicatorWrapper.style['position'] = 'fixed'
+    $indicatorWrapper.style['display'] = 'flex'
+    $indicatorWrapper.style['visibility'] = 'hidden'
+    $indicatorWrapper.style['justify-content'] = 'center'
+    $indicatorWrapper.style['width'] = '100%'
+    $indicatorWrapper.style['height'] = '5px'
+    $indicatorWrapper.style['bottom'] = '0px'
+
+    $indicator.style['background-color'] = '#006FFA'
+    $indicator.style['width'] = '0%'
+
+    $indicatorWrapper.appendChild($indicator)
+    document.body.appendChild($indicatorWrapper)
 
     document.addEventListener('scroll', function (event) {
         top = on_top()
@@ -71,8 +101,12 @@ function init () {
         if ($paginator.$next && bottom) {
             if (event.deltaY < 0) {
                 steps = 0
+                hide_indicator()
                 return
             }
+
+            show_indicator()
+            set_indicator_size(steps)
 
             if (++steps >= steps_to_jump) {
                 location.href = $paginator.$next.href
@@ -85,8 +119,12 @@ function init () {
         if ($paginator.$prev && top) {
             if (event.deltaY > 0) {
                 steps = 0
+                hide_indicator()
                 return
             }
+
+            show_indicator()
+            set_indicator_size(steps)
 
             if (++steps >= steps_to_jump) {
                 location.href = $paginator.$prev.href

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Booru Hydrus Checker
 // @description Mark media that already exists on hydrus.
-// @version     1.0.0
+// @version     1.1.0
 // @namespace   relaxeaza/userscripts
 // @grant       none
 // @run-at      document-start
@@ -51,18 +51,7 @@ function create_styles () {
 
     add_styles([
         '.rlx-hydrus-check {',
-            'width: 14px;',
-            'height: 14px;',
-            'position: absolute;',
-            'border-radius: 2px;',
-            'background-color: #77dd77;',
-            'box-shadow: 0 1px 1px #6bc76b, -2px 2px 1px #00000080;',
-            'text-align: center;',
-            'color: #000000;',
-        '}',
-
-        '.rlx-hydrus-check::after {',
-            'content: "✓"',
+            'outline: 2px dotted #69c169;',
         '}'
     ])
 }
@@ -126,55 +115,25 @@ function hydrus_check_permission (callback) {
 }
 
 add_site('danbooru.donmai.us', function () {
-    add_styles([
-        '.rlx-hydrus-check {',
-            'margin-left: 4px;',
-            'margin-top: -18px;',
-            'line-height: 17px;',
-        '}'
-    ])
-
     document.querySelectorAll('#posts-container article').forEach(function ($post) {
-        const $archor = $post.querySelector('a')
-
-        hydrus_url_exists($archor.href, function () {
-            const $checked = document.createElement('div')
-            $checked.className = 'rlx-hydrus-check'
-            $archor.appendChild($checked)
+        hydrus_url_exists($post.querySelector('a').href, function () {
+            $post.classList.add('rlx-hydrus-check')
         })
     })
 })
 
 add_site('gelbooru.com', function () {
-    add_styles([
-        '.rlx-hydrus-check {',
-            'margin-left: -9px;',
-            'margin-top: -4px;',
-            'line-height: 14px;',
-        '}'
-    ])
-
     document.querySelectorAll('.thumbnail-preview a').forEach(function ($post) {
         hydrus_url_exists($post.href, function () {
-            const $checked = document.createElement('div')
-            $checked.className = 'rlx-hydrus-check'
-            $post.appendChild($checked)
+            $post.children[0].classList.add('rlx-hydrus-check')
         })
     })
 })
 
 add_site('safebooru.org', function () {
-    add_styles([
-        '.rlx-hydrus-check {',
-            'line-height: 14px;',
-        '}'
-    ])
-
     document.querySelectorAll('#post-list .thumb a').forEach(function ($post) {
         hydrus_url_exists($post.href, function () {
-            const $checked = document.createElement('div')
-            $checked.className = 'rlx-hydrus-check'
-            $post.appendChild($checked)
+            $post.children[0].classList.add('rlx-hydrus-check')
         })
     })
 })

@@ -2,7 +2,7 @@
 // @name        Sauce Easy Drop
 // @description SauceNAO/IQDB - Drop files in any place of the window to get sauce.
 // @namespace   relaxeaza/userscripts
-// @version     1.0.0
+// @version     1.0.1
 // @grant       none
 // @run-at      document-start
 // @icon        https://i.imgur.com/7bSVRPU.jpg
@@ -44,16 +44,20 @@ function ignore (event) {
     event.stopPropagation()
 }
 
-create_form()
+function init () {
+    create_form()
 
-let $form = document.querySelector('#relax-form')
-let $input = document.querySelector('#relax-input')
+    let $form = document.querySelector('#relax-form')
+    let $input = document.querySelector('#relax-input')
 
-;['dragover', 'dragleave', 'drop'].forEach(function (eventName) {
-    document.body.addEventListener(eventName, ignore, false)
-})
+    ;['dragover', 'dragleave', 'drop'].forEach(function (eventName) {
+        document.body.addEventListener(eventName, ignore, false)
+    })
 
-document.body.addEventListener('drop', function (event) {
-    $input.files = event.dataTransfer.files
-    $form.submit()
-}, false)
+    document.body.addEventListener('drop', function (event) {
+        $input.files = event.dataTransfer.files
+        $form.submit()
+    }, false)
+}
+
+document.addEventListener('DOMContentLoaded', init)

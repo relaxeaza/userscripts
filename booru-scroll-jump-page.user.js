@@ -2,7 +2,7 @@
 // @name        Booru Scroll Jump Page
 // @description Next/prev pame after scrolling against bottom/top of the page.
 // @namespace   relaxeaza/userscripts
-// @version     1.1.0
+// @version     1.2.0
 // @grant       none
 // @run-at      document-start
 // @icon        https://i.imgur.com/pi2aL2k.jpg
@@ -10,6 +10,8 @@
 // @include     https://gelbooru.com//index.php?page=post&s=list*
 // @include     https://danbooru.donmai.us/
 // @include     https://danbooru.donmai.us/posts?*
+// @include     https://chan.sankakucomplex.com/*
+// @exclude     https://chan.sankakucomplex.com/post/*
 // @downloadURL https://gitlab.com/relaxeaza/userscripts/raw/master/booru-scroll-jump-page.user.js
 // ==/UserScript==
 
@@ -47,6 +49,13 @@ function get_pagination_elements () {
             $prev = $prev.classList.contains('arrow') ? false : $prev.childNodes[0]
 
             return { $current, $next, $prev }
+        },
+        'chan.sankakucomplex.com': function () {
+            let $current = document.querySelector('#paginator .current')
+            let $next = $current.nextElementSibling
+            let $prev = $current.previousElementSibling
+
+            return { $current, $next, $prev }
         }
     }
 
@@ -67,6 +76,10 @@ function set_indicator_size (steps) {
 }
 
 function init () {
+    if (location.host === 'chan.sankakucomplex.com' && document.cookie.includes('auto_page=1')) {
+        return false
+    }
+
     let top = on_top()
     let bottom = on_bottom()
     let steps = 0
@@ -79,7 +92,7 @@ function init () {
     $indicatorWrapper.style['visibility'] = 'hidden'
     $indicatorWrapper.style['justify-content'] = 'center'
     $indicatorWrapper.style['width'] = '100%'
-    $indicatorWrapper.style['height'] = '5px'
+    $indicatorWrapper.style['height'] = '10px'
     $indicatorWrapper.style['bottom'] = '0px'
 
     $indicator.style['background-color'] = '#006FFA'

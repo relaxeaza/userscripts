@@ -23,7 +23,7 @@ function on_top () {
 }
 
 function on_bottom () {
-    return Math.floor(document.body.offsetHeight - window.scrollY) <= document.documentElement.clientHeight
+    return Math.floor(document.documentElement.scrollHeight - window.scrollY) <= document.documentElement.clientHeight
 }
 
 function get_pagination_elements () {

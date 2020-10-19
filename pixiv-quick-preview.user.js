@@ -2,7 +2,7 @@
 // @name        Pixiv Quick Preview
 // @description Preview media without opening the post page.
 // @namespace   relaxeaza/userscripts
-// @version     1.0.2
+// @version     1.0.3
 // @grant       none
 // @run-at      document-start
 // @icon        https://i.imgur.com/pi2aL2k.jpg

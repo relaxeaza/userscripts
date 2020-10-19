@@ -17,7 +17,7 @@ let timerId
 let $overlay
 let $loading
 let $media
-const observers = []
+let observers = []
 const rextracturl = /(?:img-master|custom-thumb)\/img(\/\d{4}\/(?:\d{2}\/){5})(\d+)_p0/
 const VIDEO = 'video'
 

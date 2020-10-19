@@ -10,6 +10,7 @@
 // @include     https://www.pixiv.net/en/*
 // @downloadURL https://gitlab.com/relaxeaza/userscripts/raw/master/pixiv-quick-preview.user.js
 // @noframes
+// @require     https://cdnjs.cloudflare.com/ajax/libs/sizzle/2.3.5/sizzle.min.js
 // ==/UserScript==
 
 let timerId
@@ -25,7 +26,7 @@ const pagesData = [
     ['home', {
         match: /^\/en\/$/,
         selectors: [{
-            posts: '.gtm-illust-recommend-zone .image-item:not(.rlx-listener), .everyone-new-illusts .image-item:not(.rlx-listener)'
+            posts: '.gtm-illust-recommend-zone .image-item, .everyone-new-illusts .image-item'
         }]
     }],
 
@@ -33,11 +34,9 @@ const pagesData = [
     ['profile', {
         match: /^\/en\/users\/\d+$/,
         selectors: [{
-            posts: 'section:first-child ul > li:not(.rlx-listener)',
-            waitfor: 'section:first-child ul > li'
+            posts: 'section:eq(0) ul > li:not(:has(>a))'
         }, {
-            posts: '._1Ed7xkM:not(.rlx-listener)',
-            waitfor: 'ul._2WwRD0o._2WyzEUZ ._1Ed7xkM'
+            posts: 'section:eq(1) ul > li'
         }]
     }],
 
@@ -45,8 +44,7 @@ const pagesData = [
     ['user_illustrations', {
         match: /^\/en\/users\/\d+\/(illustrations|artworks)$/,
         selectors: [{
-            posts: 'section ul > li:not(.rlx-listener)',
-            waitfor: 'section ul > li',
+            posts: 'section ul > li',
             observe: 'section ul'
         }]
     }],
@@ -55,8 +53,7 @@ const pagesData = [
     ['stacc', {
         match: /^\/stacc$/,
         selectors: [{
-            posts: '#stacc_timeline a.work:not(.rlx-listener)',
-            waitfor: '#stacc_timeline .work',
+            posts: '#stacc_timeline a.work',
             observe: '#stacc_timeline'
         }]
     }],
@@ -65,8 +62,7 @@ const pagesData = [
     ['user_stacc', {
         match: /^\/stacc\/.+$/,
         selectors: [{
-            posts: '#stacc_center_timeline a.work:not(.rlx-listener)',
-            waitfor: '#stacc_center_timeline .work',
+            posts: '#stacc_center_timeline a.work',
             observe: '#stacc_center_timeline'
         }]
     }],
@@ -75,12 +71,10 @@ const pagesData = [
     ['illustration', {
         match: /^\/en\/artworks\/\d+$/,
         selectors: [{
-            posts: 'main nav:first-child > div > div:not(.rlx-listener)',
-            waitfor: 'main nav:first-child > div > div',
-            observe: 'main nav:first-child > div'
+            posts: 'main nav:eq(0) > div > div',
+            observe: 'main nav:eq(0) > div'
         }, {
-            posts: 'ul.gtm-illust-recommend-zone > li:not(.rlx-listener)',
-            waitfor: 'ul.gtm-illust-recommend-zone > li',
+            posts: 'ul.gtm-illust-recommend-zone > li',
             observe: 'ul.gtm-illust-recommend-zone'
         }]
     }]
@@ -160,7 +154,7 @@ const getSource = function (squareURL) {
 }
 
 const onSelectorReady = function (selector, callback) {
-    if (!selector || document.querySelector(selector)) {
+    if (!selector || Sizzle(selector).length) {
         callback()
     } else {
         setTimeout(function () {
@@ -170,11 +164,11 @@ const onSelectorReady = function (selector, callback) {
 }
 
 const setupSection = function (sectionSelector) {
-    onSelectorReady(sectionSelector.waitfor, function () {
+    onSelectorReady(sectionSelector.posts, function () {
         if (sectionSelector.observe) {
             const observer = new MutationObserver(function () {
                 setupSectionListeners(sectionSelector)
-            }).observe(document.querySelector(sectionSelector.observe), {
+            }).observe(Sizzle(sectionSelector.observe)[0], {
                 childList: true
             })
 
@@ -186,10 +180,10 @@ const setupSection = function (sectionSelector) {
 }
 
 const setupSectionListeners = function (sectionSelector) {
-    const $posts = document.querySelectorAll(sectionSelector.posts)
-
-    $posts.forEach(function ($post) {
-        $post.classList.add('rlx-listener')
+    for (let $post of Sizzle(sectionSelector.posts)) {
+        if ($post.classList.contains('rlx-listener')) {
+            continue
+        }
 
         $post.addEventListener('mouseenter', function (event) {
             timerId = setTimeout(function () {
@@ -204,7 +198,7 @@ const setupSectionListeners = function (sectionSelector) {
         })
 
         $post.addEventListener('mouseleave', hidePreview)
-    })
+    }
 }
 
 const showPreview = function (src, type) {

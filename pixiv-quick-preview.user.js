@@ -17,11 +17,11 @@ let timerId
 let $overlay
 let $loading
 let $media
-let observers = []
+const observers = []
 const rextracturl = /(?:img-master|custom-thumb)\/img(\/\d{4}\/(?:\d{2}\/){5})(\d+)_p0/
-const IS_VIDEO = 'is_video'
+const VIDEO = 'video'
 
-const pagesData = [
+const pages = [
     // https://www.pixiv.net/en/
     ['home', {
         match: /^\/en\/$/,
@@ -134,11 +134,11 @@ function init () {
 }
 
 const setupPage = function () {
-    for ([page, data] of pagesData) {
+    for ([page, data] of pages) {
         if (data.match.test(location.pathname)) {
-            data.selectors.forEach(function (sectionSelector) {
+            for (let sectionSelector of data.selectors) {
                 setupSection(sectionSelector)
-            })
+            }
 
             break
         }
@@ -166,13 +166,18 @@ const onSelectorReady = function (selector, callback) {
 const setupSection = function (sectionSelector) {
     onSelectorReady(sectionSelector.posts, function () {
         if (sectionSelector.observe) {
-            const observer = new MutationObserver(function () {
-                setupSectionListeners(sectionSelector)
-            }).observe(Sizzle(sectionSelector.observe)[0], {
-                childList: true
-            })
+            const $observe = Sizzle(sectionSelector.observe)[0]
 
-            observers.push(observer)
+            if ($observe) {
+                const observer = new MutationObserver(function () {
+                    setupSectionListeners(sectionSelector)
+                }).observe($observe, {
+                    childList: true
+                })
+
+                observers.push(observer)
+            }
+
         }
 
         setupSectionListeners(sectionSelector)
@@ -187,12 +192,16 @@ const setupSectionListeners = function (sectionSelector) {
 
         $post.addEventListener('mouseenter', function (event) {
             timerId = setTimeout(function () {
-                const previewSrc = $post.querySelector('img').src
+                const $img = $post.querySelector('img')
+
+                if (!$img) {
+                    return
+                }
 
                 if ($post.querySelector('svg circle')) {
-                    showPreview(previewSrc, IS_VIDEO)
+                    showPreview($img.src, VIDEO)
                 } else {
-                    showPreview(previewSrc)
+                    showPreview($img.src)
                 }
             }, 300)
         })
@@ -201,8 +210,8 @@ const setupSectionListeners = function (sectionSelector) {
     }
 }
 
-const showPreview = function (src, type) {
-    $media.src = type === IS_VIDEO ? src : getSource(src)
+const showPreview = function (src, flag) {
+    $media.src = flag === VIDEO ? src : getSource(src)
     $overlay.style.display = 'flex'
 }
 

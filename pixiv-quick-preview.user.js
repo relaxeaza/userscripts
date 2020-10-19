@@ -42,7 +42,7 @@ const pages = [
 
     // https://www.pixiv.net/en/users/$ARTIST_ID/illustrations OR /artworks
     ['user_illustrations', {
-        match: /^\/en\/users\/\d+\/(illustrations|artworks)$/,
+        match: /^\/en\/users\/\d+\/(illustrations|artworks|manga)$/,
         selectors: [{
             posts: 'section ul > li',
             observe: 'section ul'

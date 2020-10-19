@@ -13,7 +13,6 @@
 // @require     https://cdnjs.cloudflare.com/ajax/libs/sizzle/2.3.5/sizzle.js
 // ==/UserScript==
 
-let timerId
 let $overlay
 let $loading
 let $media
@@ -93,9 +92,9 @@ function init () {
     $overlay.style['left'] = '0px'
     $overlay.style['width'] = '100%'
     $overlay.style['height'] = '100%'
-    $overlay.style['background'] = '#00000075'
     $overlay.style['font-size'] = 'x-large'
     $overlay.style['color'] = 'white'
+    $overlay.style['text-shadow'] = '1px 1px 0px black'
     $overlay.style['pointer-events'] = 'none'
     $overlay.style['z-index'] = '10'
 
@@ -197,19 +196,17 @@ const setupSectionListeners = function (page, sectionSelector) {
         }
 
         $post.addEventListener('mouseenter', function (event) {
-            timerId = setTimeout(function () {
-                const $img = $post.querySelector('img')
+            const $img = $post.querySelector('img')
 
-                if (!$img) {
-                    return
-                }
+            if (!$img) {
+                return
+            }
 
-                if ($post.querySelector('svg circle')) {
-                    showPreview($img.src, VIDEO)
-                } else {
-                    showPreview($img.src)
-                }
-            }, 300)
+            if ($post.querySelector('svg circle')) {
+                showPreview($img.src, VIDEO)
+            } else {
+                showPreview($img.src)
+            }
         })
 
         $post.addEventListener('mouseleave', hidePreview)
@@ -222,7 +219,6 @@ const showPreview = function (src, flag) {
 }
 
 const hidePreview = function () {
-    clearTimeout(timerId)
     $overlay.style.display = 'none'
     $media.src = ''
 }

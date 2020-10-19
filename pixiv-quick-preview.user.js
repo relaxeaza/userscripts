@@ -10,7 +10,7 @@
 // @include     https://www.pixiv.net/en/*
 // @downloadURL https://gitlab.com/relaxeaza/userscripts/raw/master/pixiv-quick-preview.user.js
 // @noframes
-// @require     https://cdnjs.cloudflare.com/ajax/libs/sizzle/2.3.5/sizzle.min.js
+// @require     https://cdnjs.cloudflare.com/ajax/libs/sizzle/2.3.5/sizzle.js
 // ==/UserScript==
 
 let timerId
@@ -40,9 +40,9 @@ const pages = [
         }]
     }],
 
-    // https://www.pixiv.net/en/users/$ARTIST_ID/illustrations OR /artworks
+    // https://www.pixiv.net/en/users/$ARTIST_ID/illustrations OR /artworks OR /manga OR /bookmarks/artworks
     ['user_illustrations', {
-        match: /^\/en\/users\/\d+\/(illustrations|artworks|manga)$/,
+        match: /^\/en\/users\/\d+\/(illustrations|artworks|manga|bookmarks\/artworks)$/,
         selectors: [{
             posts: 'section ul > li',
             observe: 'section ul'
@@ -136,8 +136,10 @@ function init () {
 const setupPage = function () {
     for ([page, data] of pages) {
         if (data.match.test(location.pathname)) {
+            console.log('preview: setup sections for', location.pathname)
+
             for (let sectionSelector of data.selectors) {
-                setupSection(sectionSelector)
+                setupSection(page, sectionSelector)
             }
 
             break
@@ -163,14 +165,16 @@ const onSelectorReady = function (selector, callback) {
     }
 }
 
-const setupSection = function (sectionSelector) {
+const setupSection = function (page, sectionSelector) {
     onSelectorReady(sectionSelector.posts, function () {
         if (sectionSelector.observe) {
+            console.log('preview: setting observer for', page)
+
             const $observe = Sizzle(sectionSelector.observe)[0]
 
             if ($observe) {
                 const observer = new MutationObserver(function () {
-                    setupSectionListeners(sectionSelector)
+                    setupSectionListeners(page, sectionSelector)
                 }).observe($observe, {
                     childList: true
                 })
@@ -180,11 +184,13 @@ const setupSection = function (sectionSelector) {
 
         }
 
-        setupSectionListeners(sectionSelector)
+        setupSectionListeners(page, sectionSelector)
     })
 }
 
-const setupSectionListeners = function (sectionSelector) {
+const setupSectionListeners = function (page, sectionSelector) {
+    console.log('preview: setting post events for', page)
+
     for (let $post of Sizzle(sectionSelector.posts)) {
         if ($post.classList.contains('rlx-listener')) {
             continue

@@ -2,7 +2,7 @@
 // @name        Booru Quick Preview
 // @description Preview media without opening the post page.
 // @namespace   relaxeaza/userscripts
-// @version     1.0.0
+// @version     1.0.1
 // @grant       none
 // @run-at      document-start
 // @icon        https://i.imgur.com/pi2aL2k.jpg
@@ -181,6 +181,10 @@ function create_styles () {
             'border: 2px solid #0773fb;',
             'padding: 4px;',
             'margin: auto;',
+        '}',
+
+        '#rlx-preview-element {',
+            'max-height: 97vh;',
         '}'
     ])
 }
